@@ -2,3 +2,44 @@ Samantha interviews many candidates from different colleges using coding challen
 
 SOLUTION
 
+SELECT Contests.Contest_ID, 
+        Contests.Hacker_ID, 
+        Contests.Name, 
+        SUM(Submissions_Sums.Sum_Total_Submissions),
+        SUM(Submissions_Sums.Sum_Total_Accepted_Submissions), 
+        SUM(Views_Sums.Sum_Total_Views),
+        SUM(Views_Sums.Sum_Total_Unique_Views)
+FROM Contests
+JOIN Colleges 
+        ON Contests.Contest_ID = Colleges.Contest_ID
+JOIN Challenges
+        ON Colleges.College_ID = Challenges.College_ID
+        
+LEFT JOIN 
+    (SELECT Challenge_ID,
+            SUM(Total_Submissions) AS Sum_Total_Submissions,
+            SUM(Total_Accepted_Submissions) AS Sum_Total_Accepted_Submissions
+    FROM Submission_Stats
+    GROUP BY Challenge_ID) AS Submissions_Sums
+    
+    ON Challenges.Challenge_ID = Submissions_Sums.Challenge_ID
+    
+LEFT JOIN
+    (SELECT Challenge_ID,
+            SUM(Total_Views) AS Sum_Total_Views,
+            SUM(Total_Unique_Views) AS Sum_Total_Unique_Views
+    FROM View_Stats
+    GROUP BY Challenge_ID) AS Views_Sums
+    
+    ON Challenges.Challenge_ID = Views_Sums.Challenge_ID
+
+GROUP BY Contests.Contest_ID, Contests.Hacker_ID, Contests.Name
+
+HAVING 
+    (
+     SUM(Submissions_Sums.Sum_Total_Submissions) +
+     SUM(Submissions_Sums.Sum_Total_Accepted_Submissions) +
+     SUM(Views_Sums.Sum_Total_Views) +
+     SUM(Views_Sums.Sum_Total_Unique_Views)
+) > 0
+ORDER BY Contests.Contest_ID
